@@ -302,7 +302,7 @@ def compute_feasible_region_hybrid():
     Vmin, Vmax = 0.95, 1.05
     Qg_min, Qg_max = -4.0, 4.0
 
-    num_points = 100
+    num_points = 200
     Pg1_points_MW = np.linspace(440, 461.5, num_points)
 
     with open("optimization_log.csv", "w") as log_file:
@@ -468,7 +468,7 @@ def visualize_results():
     c = conn.cursor()
     try:
         # 修改：读取 Qg1_Mvar
-        c.execute("SELECT Pg1_MW, Qg1_Mvar FROM feasible_points")
+        c.execute("SELECT Pg1_MW, V1, V2 FROM feasible_points")
         feasible_data = c.fetchall()
         
         c.execute("SELECT * FROM partial_results")
@@ -481,27 +481,28 @@ def visualize_results():
 
         plt.figure(figsize=(10, 6))
 
-        # 绘制可行解 (Scatter Plot: P vs Q)
+        # 绘制可行解 (Scatter Plot: V1 vs V2)
+        # 修改后的代码部分：
         if feasible_data:
             data_arr = np.array(feasible_data)
-            Pg1 = data_arr[:, 0]
-            Qg1 = data_arr[:, 1]
+            print(f"数据形状: {data_arr.shape}")  # 调试信息，显示数组维度
             
-            # 使用单一颜色绘制散点，清晰展示 P-Q 边界
-            plt.scatter(Pg1, Qg1, c='blue', s=20, alpha=0.6, label="可行运行点 (TJU+IPOPT)")
+            V1 = data_arr[:, 1]  # 第一列是 Pg1_MW
+            V2 = data_arr[:, 2]  # 第二列是 V1，第三列是 V2
             
-            # 添加零线参考
-            plt.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
+            # 使用单一颜色绘制散点，展示V1-V2关系
+            plt.scatter(V1, V2, c='blue', s=20, alpha=0.6, label="可行运行点 (TJU+IPOPT)")
+            
 
         # 设置图表属性
-        plt.xlabel("发电机有功功率 Pg1 (MW)", fontsize=12)
-        plt.ylabel("发电机无功功率 Qg1 (Mvar)", fontsize=12)
-        plt.title("2节点系统 P-Q 可行域散点图 (TJU+IPOPT双阶段)", fontsize=14)
+        plt.xlabel("节点1电压 V1 (p.u.)", fontsize=12)
+        plt.ylabel("节点2电压 V2 (p.u.)", fontsize=12)
         plt.grid(True, linestyle='--', alpha=0.5)
         plt.legend(loc='upper right')
-        
+        plt.xlim(0.94, 0.96)
+        plt.ylim(0.94, 1.05)
         # 保存并显示
-        save_name = "hybrid_PQ_scatter.png"
+        save_name = "hybrid_V1V2_scatter.png"
         plt.tight_layout()
         plt.savefig(save_name, dpi=300)
         print(f"图表已保存为 {save_name}")
