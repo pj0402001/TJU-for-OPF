@@ -18,5 +18,5 @@ pip install -r requirements.txt
 ## 🎓 Usage
 
 ```bash
-python WB2.py \
+python WB2.py
 ```
